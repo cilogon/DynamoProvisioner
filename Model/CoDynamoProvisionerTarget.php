@@ -112,6 +112,11 @@ class CoDynamoProvisionerTarget extends CoProvisionerPluginTarget {
       'rule' => 'notBlank',
       'required' => false,
       'allowEmpty' => true
+    ),
+    'duplicate_item' => array(
+      'rule' => 'boolean',
+      'required' => false,
+      'allowEmpty' => true
     )
   );
 
@@ -501,10 +506,17 @@ class CoDynamoProvisionerTarget extends CoProvisionerPluginTarget {
       return $ret;
     }
 
-    // See if we have recorded an item key for this CO Person.
-    $itemKey = $this->CoDynamoProvisionerKey->getSavedKeyByCoPersonId($id);
+    // Pull the configuration.
+    $args = array();
+    $args['conditions']['CoDynamoProvisionerTarget.co_provisioning_target_id'] = $coProvisioningTargetId;
+    $args['contain'] = false;
 
-    if(empty($itemKey)) {
+    $coProvisioningTargetData = $this->find('first', $args);
+
+    // See if we have recorded any item keys for this CO Person.
+    $itemKeys = $this->CoDynamoProvisionerKey->getSavedKeysByCoPersonId($id, $coProvisioningTargetData['CoDynamoProvisionerTarget']['id']);
+
+    if(empty($itemKeys)) {
       return $ret;
     }
 
@@ -517,14 +529,20 @@ class CoDynamoProvisionerTarget extends CoProvisionerPluginTarget {
       $ret['timestamp'] = $pstatus['timestamp'];
     }
 
-    $partitionKey = $itemKey['CoDynamoProvisionerKey']['partition_key'];
-    $sortKey = $itemKey['CoDynamoProvisionerKey']['sort_key'] ?? null;
+    $comment = "";
+    foreach($itemKeys as $itemKey) {
+      $partitionKey = $itemKey['CoDynamoProvisionerKey']['partition_key'];
+      $comment = $comment . $partitionKey;
 
-    if(!empty($sortKey)) {
-      $ret['comment'] = $partitionKey . ',' . $sortKey;
-    } else {
-      $ret['comment'] = $partitionKey;
+      $sortKey = $itemKey['CoDynamoProvisionerKey']['sort_key'] ?? null;
+      $comment = $comment . $sortKey;
+
+      $comment = $comment. ",";
     }
+
+    $comment = rtrim($comment, ",");
+
+    $ret['comment'] = $comment;
 
     return $ret;
   }
@@ -535,23 +553,26 @@ class CoDynamoProvisionerTarget extends CoProvisionerPluginTarget {
    * @since COmanage Registry v4.3.1
    * @param Array $coProvisioningTargetData provisioning target data
    * @param Array $provisioningData CP Person provisioning data
-   * @param Boolean $delete True if item should be deleted from table
+   * @param Boolean $delete True if items should be deleted from table
    * @throws none
    * @return Boolean True on success
    */
 
   protected function syncPerson($coProvisioningTargetData, $provisioningData, $delete = false) {
-    // Retrieve saved key by CO Person ID if we have one.
     $coPersonId = $provisioningData['CoPerson']['id'];
-    $savedKey = $this->CoDynamoProvisionerKey->getSavedKeyByCoPersonId($coPersonId);
-
     $logPrefix = "DynamoProvisioner CoDynamoProvisionerTarget syncPerson CO Person ID $coPersonId ";
+
+    // Retrieve saved keys by CO Person ID if we have any.
+    $savedKeys = $this->CoDynamoProvisionerKey->getSavedKeysByCoPersonId($coPersonId, $coProvisioningTargetData['CoDynamoProvisionerTarget']['id']);
+
+    $msg = $logPrefix . "saved keys are " . print_r($savedKeys, true);
+    $this->log($msg);
 
     // For provisioning actions other than CoPersonDeleted the CO Person status is factored into
     // the logic.
     $status = $provisioningData['CoPerson']['status'] ?? null;
 
-    // If the saved key is empty and so this CO Person record has never been provisioned
+    // If there are no saved keys and so this CO Person record has never been provisioned
     // and the record has any of these status values then do not provision. If the saved
     // key is not empty signal to delete the item and saved key.
     $noInitialProvisionStatus = array(
@@ -568,9 +589,9 @@ class CoDynamoProvisionerTarget extends CoProvisionerPluginTarget {
     );
 
     if(in_array($status, $noInitialProvisionStatus)) {
-      if(empty($savedKey)) {
+      if(empty($savedKeys)) {
         $s = StatusEnum::$to_api[$status] ?? null;
-        $msg = $logPrefix . "with no saved key and status $s will not be provisioned";
+        $msg = $logPrefix . "with no saved keys and status $s will not be provisioned";
         $this->log($msg);
         return true;
       } else {
@@ -578,23 +599,31 @@ class CoDynamoProvisionerTarget extends CoProvisionerPluginTarget {
       }
     }
 
-    // Compute the key based on current CoPerson record.
+    // Compute the keys based on current CoPerson record.
     try {
-      $computedKey = $this->CoDynamoProvisionerKey->getComputedKeyByCoPerson($coProvisioningTargetData, $provisioningData);
-      $msg = $logPrefix . "computed key is " . print_r($computedKey, true);
+      $computedKeys = $this->CoDynamoProvisionerKey->getComputedKeysByCoPerson($coProvisioningTargetData, $provisioningData);
+      $msg = $logPrefix . "computed keys are " . print_r($computedKeys, true);
       $this->log($msg);
     } catch (Exception $e) {
-      $computedKey = null;
-      $msg = $logPrefix . "caught exception trying to compute key";
+      $computedKeys = null;
+      $msg = $logPrefix . "caught exception trying to compute keys";
       $this->log($msg);
       // If we cannot compute a key it is probably because the required Identifier
       // is not present for the CO Person record. It may have even been deleted
       // so there may be a saved key and we may need to delete the item.
-      if(!empty($savedKey)) {
+      if(!empty($savedKeys)) {
         $msg = $logPrefix . "setting delete true";
         $this->log($msg);
         $delete = true;
       }
+    }
+
+    // Do not allow more than one computed key if we have not been configured
+    // for duplicate items in the table.
+    if(count($computedKeys) > 1 && !$coProvisioningTargetData['CoDynamoProvisionerTarget']['duplicate_item']) {
+      $msg = $logPrefix . "more than one key computed but duplicate_item is configured false";
+      $this->log($msg);
+      return false;
     }
 
     // Create the DynamoDB client.
@@ -606,98 +635,122 @@ class CoDynamoProvisionerTarget extends CoProvisionerPluginTarget {
       return false;
     }
 
-    // Delete the item in DynamoDB and the saved key when signalled.
+    // Delete the items in DynamoDB and the saved keys when signalled.
     if($delete) {
-      if(empty($savedKey)) {
-        $msg = $logPrefix . "has no saved key so no delete required";
+      if(empty($savedKeys)) {
+        $msg = $logPrefix . "has no saved keys so no delete required";
         $this->log($msg);
         return true;
       }
 
-      $success = $this->deleteUserItem($coProvisioningTargetData, $savedKey);
-      if(!$success) {
-        // Log the error deleting the item from DynamoDB and do not attempt to delete the
-        // saved key so that we still have a reference to the item in DynamoDB linked
-        // to this CO Person record.
-        $msg = $logPrefix . "failed deleting user item with saved key " . print_r($savedKey, true);
+      $success = true;
+      foreach($savedKeys as $savedKey) {
+        $ret = $this->deleteUserItem($coProvisioningTargetData, $savedKey);
+        if(!$ret) {
+          // Log the error deleting the item from DynamoDB and do not attempt to delete the
+          // saved key so that we still have a reference to the item in DynamoDB linked
+          // to this CO Person record.
+          $msg = $logPrefix . "failed deleting user item with saved key " . print_r($savedKey, true);
+          $this->log($msg);
+          $success = false;
+          continue;
+        }
+
+        $ret = $this->CoDynamoProvisionerKey->delete($savedKey['CoDynamoProvisionerKey']['id']);
+        if(!$ret) {
+          $msg = $logPrefix . "failed deleting saved key " . print_r($savedKey, true);
+          $this->log($msg);
+          $success = false;
+          continue;
+        }
+
+        $msg = $logPrefix . "deleted item with saved key " . print_r($savedKey, true);
         $this->log($msg);
-        return false;
       }
 
-      $success = $this->CoDynamoProvisionerKey->delete($savedKey['CoDynamoProvisionerKey']['id']);
-      if(!$success) {
-        $msg = $logPrefix . "failed deleting saved key " . print_r($savedKey, true);
-        $this->log($msg);
-        return false;
-      }
-      
-      $msg = $logPrefix . "deleted item with saved key " . print_r($savedKey, true);
-      $this->log($msg);
-      return true;
+      return $success;
     }
 
-    // We may not have a computed key if the CO Person record does not have
+    // We may not have any computed keys if the CO Person record does not have
     // the necessary Identifier(s).
-    if(empty($computedKey)) {
-      $msg = $logPrefix . "no computed key is available so will not provision";
+    if(empty($computedKeys)) {
+      $msg = $logPrefix . "no computed keys are available so will not provision";
       $this->log($msg);
       return true;
     }
 
-    // We always PUT the user item using the computed key thereby either adding
-    // a new item or updating/replacing a current one in the table.
-    $success = $this->putUserItem($coProvisioningTargetData, $provisioningData, $computedKey);
+    foreach($computedKeys as $computedKey) {
+      // We always PUT the user item using a computed key thereby either adding
+      // a new item or updating/replacing a current one in the table.
+      $success = $this->putUserItem($coProvisioningTargetData, $provisioningData, $computedKey);
 
-    // If we failed to PUT the user item then do no further work and signal failure.
-    if(!$success) {
-      $msg = $logPrefix . "failed to put item using computed key " . print_r($computedKey, true);
+      // If we failed to PUT the user item then do no further work and signal failure.
+      if(!$success) {
+        $msg = $logPrefix . "failed to put item using computed key " . print_r($computedKey, true);
+        $this->log($msg);
+        return false;
+      }
+
+      $msg = $logPrefix . "put item with computed key " . print_r($computedKey, true);
       $this->log($msg);
-      return false;
+
+      // If we had no saved keys then save the computed key now.
+      if(empty($savedKeys)) {
+        $this->CoDynamoProvisionerKey->clear();
+        $this->CoDynamoProvisionerKey->save($computedKey);
+      }
     }
 
-    $msg = $logPrefix . "put item with computed key " . print_r($computedKey, true);
-    $this->log($msg);
-
-    // If we had no saved key then save the computed key now.
-    if(empty($savedKey)) {
-      $this->CoDynamoProvisionerKey->save($computedKey);
-      return true;
-    }
-
-    // If the saved key and computed key are equal then update the modified
-    // time on the saved key and we are done.
-    if($this->CoDynamoProvisionerKey->keysAreEqual($savedKey, $computedKey)) {
-      return true;
-    }
-    
-    // If the saved key and the computed key differ then we must delete the old
-    // item in the DynamoDB table, save the computed key, and delete the old
-    // saved key in our table.
-    $success = $this->deleteUserItem($coProvisioningTargetData, $savedKey);
-    if(!$success) {
-      // Log the error deleting the saved item but return true since we did
-      // provision the new key.
-      $msg = $logPrefix . "failed deleting user item with saved key " . print_r($savedKey, true);
+    // If we had no saved keys then we are done now.
+    if(empty($savedKeys)) {
+      $msg = $logPrefix . "there were no previously saved keys so sync is complete now";
       $this->log($msg);
       return true;
     }
 
-    $success = $this->CoDynamoProvisionerKey->delete($savedKey['CoDynamoProvisionerKey']['id']);
-    if(!$success) {
-      // Log the error deleting the saved key but return true since we did
-      // provision the new key.
-      $msg = $logPrefix . "failed deleting saved key " . print_r($savedKey, true);
+    // If the saved keys and computed keys are equal then we are done now.
+    if($this->CoDynamoProvisionerKey->keySetsAreEqual($savedKeys, $computedKeys)) {
+      $msg = $logPrefix . "previously saved keys and computed keys are equal so sync is complete now";
       $this->log($msg);
       return true;
     }
 
-    $success = $this->CoDynamoProvisionerKey->save($computedKey);
-    if(!$success) {
-      // Log the error saving the computed key but return true since we did
-      // provision the new key.
-      $msg = $logPrefix . "failed saving key " . print_r($computedKey, true);
-      $this->log($msg);
-      return true;
+    // If we have gotten this far then the set of previously saved keys and computed
+    // keys is different so process the differences now.
+    // First, save any computed keys that were not previously saved.
+    foreach($computedKeys as $computedKey) {
+      if(!$this->CoDynamoProvisionerKey->keyInSet($computedKey, $savedKeys)) {
+        $this->CoDynamoProvisionerKey->clear();
+        $this->CoDynamoProvisionerKey->save($computedKey);
+      }
+    }
+
+    // Next for any saved key that is not in the set of computed keys we must
+    // delete the old item in the DynamoDB table and then delete the old saved key.
+    foreach($savedKeys as $savedKey) {
+      if(!$this->CoDynamoProvisionerKey->keyInSet($savedKey, $computedKeys)) {
+        $success = $this->deleteUserItem($coProvisioningTargetData, $savedKey);
+        if($success) {
+          $msg = $logPrefix . "deleted item for previously saved key " . print_r($savedKey, true);
+          $this->log($msg);
+        }
+        else {
+          // Log the error deleting the saved item but return true since we did
+          // provision the computed keys.
+          $msg = $logPrefix . "failed deleting user item with saved key " . print_r($savedKey, true);
+          $this->log($msg);
+          return true;
+        }
+
+        $success = $this->CoDynamoProvisionerKey->delete($savedKey['CoDynamoProvisionerKey']['id']);
+        if(!$success) {
+          // Log the error deleting the saved key but return true since we did
+          // provision the computed keys.
+          $msg = $logPrefix . "failed deleting saved key " . print_r($savedKey, true);
+          $this->log($msg);
+          return true;
+        }
+      }
     }
     
     return true;

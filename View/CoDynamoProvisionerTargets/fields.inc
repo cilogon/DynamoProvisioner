@@ -77,7 +77,7 @@
         $attrs['value'] = (isset($co_dynamo_provisioner_targets[0]['CoDynamoProvisionerTarget']['aws_region']) 
                            ? $co_dynamo_provisioner_targets[0]['CoDynamoProvisionerTarget']['aws_region']
                            : null);
-        // Since required=true, this will render blank by default but not allow save until a server is selected
+        // Since required=true, this will render blank by default but not allow save until a region is selected
         $attrs['empty'] = true;
 
         if($e) {
@@ -253,6 +253,39 @@
     </div>
   </li>
 
+  <li>
+    <div class="field-name">
+      <?php print ($e ? $this->Form->label('duplicate_item', _txt('pl.dynamoprovisioner.duplicate_item')) : _txt('pl.dynamoprovisioner.duplicate_item')); ?>
+    </div>
+    <div class="field-info">
+      <?php
+        if($e) {
+          $args = array();
+          $args['required'] = false;
+          if(empty($co_dynamo_provisioner_targets[0]['CoDynamoProvisionerTarget']['aws_region'])) {
+            $args['checked'] = true;
+          } else {
+            if(empty($co_dynamo_provisioner_targets[0]['CoDynamoProvisionerTarget']['duplicate_item'])) {
+              $args['checked'] = false;
+            } else {
+              $args['checked'] = true;
+            }
+          }
+
+          print $this->Form->input('duplicate_item', $args);
+
+          if($this->Form->isFieldError('duplicate_item')) {
+            print $this->Form->error('duplicate_item');
+          }
+        } else {
+          if(!empty($co_dynamo_provisioner_targets[0]['CoDynamoProvisionerTarget']['duplicate_item'])) {
+            print filter_var($co_dynamo_provisioner_targets[0]['CoDynamoProvisionerTarget']['duplicate_item'], FILTER_SANITIZE_SPECIAL_CHARS);
+          }
+        }
+      ?>
+    </div>
+  </li>
+
   <?php for($i = 0; $i < 10; $i++): ?>
     <?php 
         if($e && !empty($co_dynamo_provisioner_targets[0]['CoDynamoProvisionerAttrMap'][$i]['id'])) {
@@ -316,6 +349,7 @@
         ?>
       </div>
     </li>
+
   <?php endfor; ?> 
 
   <?php if($e): ?>

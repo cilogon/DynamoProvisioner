@@ -40,6 +40,7 @@
     <field name="partition_key_template" type="C" size="256" />
     <field name="sort_key" type="C" size="256" />
     <field name="sort_key_template" type="C" size="256" />
+    <field name="duplicate_item" type="L" />
     <field name="created" type="T" />
     <field name="modified" type="T" />
     
@@ -65,10 +66,9 @@
     <field name="created" type="T" />
     <field name="modified" type="T" />
     
-    <index name="co_ldap_dynamo_keys_i1">
+    <index name="co_dynamo_keys_i1">
       <col>co_dynamo_provisioner_target_id</col>
       <col>co_person_id</col>
-      <unique />
     </index>
   </table>
 

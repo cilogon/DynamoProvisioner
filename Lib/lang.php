@@ -48,6 +48,7 @@ $cm_dynamo_provisioner_texts['en_US'] = array(
   'pl.dynamoprovisioner.partition_key_template' => 'Partition Key Value Template',
   'pl.dynamoprovisioner.sort_key'               => 'Sort Key Attribute Name',
   'pl.dynamoprovisioner.sort_key_template'      => 'Sort Key Value Template',
+  'pl.dynamoprovisioner.duplicate_item'         => 'Provision Duplicate Items',
   'pl.dynamoprovisioner.attribute'              => 'Additional Attribute Name',
   'pl.dynamoprovisioner.attribute_template'     => 'Additional Attribute Value Template',
   'pl.dynamoprovisioner.attribute_constraint'   => 'Additional Attribute Constraint',
