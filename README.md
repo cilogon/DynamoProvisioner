@@ -157,6 +157,20 @@ The template to use to create the sort key value for a CO Person record.
 See the [Value Templating](#value-templating) section below for details on
 value templating.
 
+### Provision Multiple Items
+
+Whether or not to provision multiple items for a CO Person record when
+evaluating the partition and sort key value templates against the set
+of Identifiers for the record leads to multiple keys. The attributes
+provisioner for each item are the same.
+
+When the box is ticked the provisioner will write and manage multiple
+items, one for each unique partition and sort key combination.
+
+If the box is not ticked and the evaluation of the partition and sort key
+value templates against the set of Identifiers leads to multiple keys it
+is an error and no records will be provisioned.
+
 ### Additional Attributes
 
 Up to ten (10) additional attributes beyond the partition and sort key may
@@ -321,6 +335,13 @@ a DynamoDB String containing the SSH key type and the key.
 
 - *cm_status*: A DynamoDB String indicating the status for the CO Person
   record.
+
+- *cm_tandc_agreements*: A DynamoDB List of Terms And Condition Agreements. Each
+element of the List will be a DynamoDB Map with the following keys and values:
+
+   - *cm_agreement_time*: The Unix time agreement timestamp as a DynamoDB Number.
+   - *cm_description*: The description (name) of the Terms and Condition Agreement.
+   - *cm_status*: The agreement status as a DynamoDB String.
 
 - *cm_unix_cluster_accounts*: A DynamoDB List of UnixCluster accounts. Each
 element of the List will be a DynamoDB Map with the following keys and values:
@@ -675,6 +696,23 @@ returned by the DynamoDB API as part of a GET operation.
   },
   "cm_status": {
     "S": "Active"
+  },
+  "cm_tandc_agreements": {
+    "L": [
+      {
+        "M": {
+          "cm_agreement_time": {
+            "N": "1715165404"
+          },
+          "cm_description": {
+            "S": "Acceptable Use Policy"
+          },
+          "cm_status": {
+            "S": "Active"
+          }
+        }
+      }
+    ]
   },
   "cm_unix_cluster_accounts": {
     "L": [

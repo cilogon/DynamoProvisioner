@@ -384,6 +384,26 @@ class CoDynamoProvisionerTarget extends CoProvisionerPluginTarget {
       $item['cm_unix_cluster_accounts']['L'] = $accounts;
     }
 
+    // Terms and Conditions
+    $tandcs = array();
+    foreach($provisioningData['CoTAndCAgreement'] as $a) {
+      $map = array();
+
+      $map['cm_description']['S'] = $a['CoTermsAndConditions']['description'];
+
+      $map['cm_status']['S'] = StatusEnum::$to_api[$a['CoTermsAndConditions']['status']];
+
+      // DynamoDB will record the value as a number hence 'N', but during
+      // transport it must be sent as a string.
+      $map['cm_agreement_time']['N'] = strval(strtotime($a['agreement_time']));
+
+      $tandcs[]['M'] = $map;
+    }
+
+    if(!empty($tandcs)) {
+      $item['cm_tandc_agreements']['L'] = $tandcs;
+    }
+
     // Marshall additional attributes as configured. For now we assume they
     // are to be marshalled as strings using the configured template that
     // substitutes values from Identifiers.
