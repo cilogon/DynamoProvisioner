@@ -358,26 +358,28 @@ class CoDynamoProvisionerTarget extends CoProvisionerPluginTarget {
 
     // UnixClusterAccount
     $accounts = array();
-    foreach($provisioningData['UnixClusterAccount'] as $a) {
-      $map = array();
+    if(!empty($provisioningData['UnixClusterAccount'])) {
+      foreach($provisioningData['UnixClusterAccount'] as $a) {
+        $map = array();
 
-      $map['cm_description']['S'] = $a['UnixCluster']['Cluster']['description'];
+        $map['cm_description']['S'] = $a['UnixCluster']['Cluster']['description'];
 
-      $map['cm_status']['S'] = StatusEnum::$to_api[$a['status']];
+        $map['cm_status']['S'] = StatusEnum::$to_api[$a['status']];
 
-      $map['cm_username']['S'] = $a['username'];
+        $map['cm_username']['S'] = $a['username'];
 
-      // DynamoDB will record the value as a number hence 'N', but during
-      // transport it must be sent as a string.
-      $map['cm_uid']['N'] = strval($a['uid']);
+        // DynamoDB will record the value as a number hence 'N', but during
+        // transport it must be sent as a string.
+        $map['cm_uid']['N'] = strval($a['uid']);
 
-      $map['cm_gecos']['S'] = $a['gecos'];
+        $map['cm_gecos']['S'] = $a['gecos'];
 
-      $map['cm_login_shell']['S'] = $a['login_shell'];
+        $map['cm_login_shell']['S'] = $a['login_shell'];
 
-      $map['cm_home_directory']['S'] = $a['home_directory'];
+        $map['cm_home_directory']['S'] = $a['home_directory'];
 
-      $accounts[]['M'] = $map;
+        $accounts[]['M'] = $map;
+      }
     }
 
     if(!empty($accounts)) {
@@ -386,18 +388,25 @@ class CoDynamoProvisionerTarget extends CoProvisionerPluginTarget {
 
     // Terms and Conditions
     $tandcs = array();
-    foreach($provisioningData['CoTAndCAgreement'] as $a) {
-      $map = array();
 
-      $map['cm_description']['S'] = $a['CoTermsAndConditions']['description'];
+    if(!empty($provisioningData['CoTAndCAgreement'])) {
+      foreach($provisioningData['CoTAndCAgreement'] as $a) {
+        $map = array();
 
-      $map['cm_status']['S'] = StatusEnum::$to_api[$a['CoTermsAndConditions']['status']];
+        if(!empty($a['CoTermsAndConditions']['description'])) {
+          $map['cm_description']['S'] = $a['CoTermsAndConditions']['description'];
+        }
 
-      // DynamoDB will record the value as a number hence 'N', but during
-      // transport it must be sent as a string.
-      $map['cm_agreement_time']['N'] = strval(strtotime($a['agreement_time']));
+        if(!empty($a['CoTermsAndConditions']['status'])) {
+          $map['cm_status']['S'] = StatusEnum::$to_api[$a['CoTermsAndConditions']['status']];
+        }
 
-      $tandcs[]['M'] = $map;
+        // DynamoDB will record the value as a number hence 'N', but during
+        // transport it must be sent as a string.
+        $map['cm_agreement_time']['N'] = strval(strtotime($a['agreement_time']));
+
+        $tandcs[]['M'] = $map;
+      }
     }
 
     if(!empty($tandcs)) {
