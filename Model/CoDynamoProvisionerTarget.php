@@ -349,7 +349,7 @@ class CoDynamoProvisionerTarget extends CoProvisionerPluginTarget {
     // SshKey
     $keys = array();
     foreach($provisioningData['SshKey'] as $k) {
-      $keys[] = $k['type'] . ' ' . $k['skey'];
+      $keys[] = $k['type'] . ' ' . $k['skey'] . ' ' . $k['comment'];
     }
 
     if(!empty($keys)) {
