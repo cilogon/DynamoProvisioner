@@ -223,6 +223,10 @@ class CoDynamoProvisionerTarget extends CoProvisionerPluginTarget {
     foreach($provisioningData['CoGroupMember'] as $m) {
       $map = array();
 
+      // DynamoDB will record the value as a number hence 'N', but during
+      // transport it must be sent as a string.
+      $map['cm_group_id']['N'] = strval($m['CoGroup']['id']);
+
       $map['cm_name']['S'] = $m['CoGroup']['name'];
 
       $map['cm_owner']['BOOL'] = (bool) $m['owner'];
