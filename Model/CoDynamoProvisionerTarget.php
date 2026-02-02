@@ -27,8 +27,6 @@
 
 App::uses("CoProvisionerPluginTarget", "Model");
 
-require_once LOCAL . "Plugin" . DS . "DynamoProvisioner" . DS . "Vendor" . DS . "autoload.php";
-
 use Aws\Credentials\Credentials;
 use Aws\DynamoDb\DynamoDbClient;
 
