@@ -215,7 +215,7 @@ class CoDynamoProvisionerKey extends AppModel {
       }
       if(empty($key1['CoDynamoProvisionerKey'][$f]) && !empty($key2['CoDynamoProvisionerKey'][$f])) {
         return false;
-
+      }
       if(!empty($key1['CoDynamoProvisionerKey'][$f]) &&
          !empty($key2['CoDynamoProvisionerKey'][$f]) &&
          $key1['CoDynamoProvisionerKey'][$f] != $key2['CoDynamoProvisionerKey'][$f]) {
