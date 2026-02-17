@@ -162,8 +162,8 @@ class CoDynamoProvisionerTarget extends CoProvisionerPluginTarget {
 
     $args['Key'][$partitionKeyName]['S'] = $partitionKeyValue;
 
-    $sortKeyName = $coProvisioningTargetData['CoDynamoProvisionerTarget']['partition_key'] ?? null;
-    $sortKeyValue = $key['CoDynamoProvisionerKey']['partition_key'] ?? null;
+    $sortKeyName = $coProvisioningTargetData['CoDynamoProvisionerTarget']['sort_key'] ?? null;
+    $sortKeyValue = $key['CoDynamoProvisionerKey']['sort_key'] ?? null;
 
     if(!empty($sortKeyName)) {
       $args['Key'][$sortKeyName]['S'] = $sortKeyValue;
@@ -203,8 +203,8 @@ class CoDynamoProvisionerTarget extends CoProvisionerPluginTarget {
 
     $item[$partitionKeyName]['S'] = $partitionKeyValue;
 
-    $sortKeyName = $coProvisioningTargetData['CoDynamoProvisionerTarget']['partition_key'] ?? null;
-    $sortKeyValue = $key['CoDynamoProvisionerKey']['partition_key'] ?? null;
+    $sortKeyName = $coProvisioningTargetData['CoDynamoProvisionerTarget']['sort_key'] ?? null;
+    $sortKeyValue = $key['CoDynamoProvisionerKey']['sort_key'] ?? null;
 
     if(!empty($sortKeyName)) {
       $item[$sortKeyName]['S'] = $sortKeyValue;
