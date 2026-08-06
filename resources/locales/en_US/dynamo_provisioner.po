@@ -1,0 +1,185 @@
+# COmanage Registry DynamoProvisioner Plugin Language File
+#
+# Portions licensed to the University Corporation for Advanced Internet
+# Development, Inc. ("UCAID") under one or more contributor license agreements.
+# See the NOTICE file distributed with this work for additional information
+# regarding copyright ownership.
+#
+# UCAID licenses this file to you under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with the
+# License. You may obtain a copy of the License at:
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+msgid ""
+msgstr ""
+"Project-Id-Version: COmanage Registry\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: \n"
+"PO-Revision-Date: \n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+# Controller names
+msgid "controller.DynamoProvisioners"
+msgstr "{0,plural,=1{Dynamo Provisioner} other{Dynamo Provisioners}}"
+
+# Field names
+msgid "field.aws_region"
+msgstr "AWS Region"
+
+msgid "field.table_name"
+msgstr "DynamoDB Table Name"
+
+msgid "field.aws_access_key"
+msgstr "AWS Access Key"
+
+msgid "field.aws_secret_key"
+msgstr "AWS Secret Key"
+
+msgid "field.partition_key"
+msgstr "Partition Key Attribute Name"
+
+msgid "field.partition_key_template"
+msgstr "Partition Key Value Template"
+
+msgid "field.sort_key"
+msgstr "Sort Key Attribute Name"
+
+msgid "field.sort_key_template"
+msgstr "Sort Key Value Template"
+
+msgid "field.duplicate_item"
+msgstr "Provision Multiple Items"
+
+msgid "field.attribute"
+msgstr "Additional Attribute Name"
+
+msgid "field.attribute_template"
+msgstr "Additional Attribute Value Template"
+
+msgid "field.attribute_constraint"
+msgstr "Additional Attribute Constraint"
+
+# Additional Attribute Mappings section
+msgid "pl.dynamo_provisioner.attr_maps.title"
+msgstr "Additional Attribute Mappings"
+
+msgid "pl.dynamo_provisioner.attr_maps.description"
+msgstr "Configure additional DynamoDB attributes to provision based on Person data. Use (I/IdentifierType) in templates to substitute identifier values."
+
+msgid "pl.dynamo_provisioner.attr_maps.attribute"
+msgstr "Attribute Name"
+
+msgid "pl.dynamo_provisioner.attr_maps.attribute_template"
+msgstr "Attribute Value Template"
+
+msgid "pl.dynamo_provisioner.attr_maps.attribute_constraint"
+msgstr "Constraint (optional)"
+
+msgid "pl.dynamo_provisioner.attr_maps.add_first_button"
+msgstr "Add Attribute Mapping"
+
+msgid "pl.dynamo_provisioner.attr_maps.add_another_button"
+msgstr "Add Another Attribute Mapping"
+
+# AWS Region enum localizations
+msgid "enumeration.AwsRegionEnum.af-south-1"
+msgstr "Africa (Cape Town) af-south-1"
+
+msgid "enumeration.AwsRegionEnum.ap-east-1"
+msgstr "Asia Pacific (Hong Kong) ap-east-1"
+
+msgid "enumeration.AwsRegionEnum.ap-south-2"
+msgstr "Asia Pacific (Hyderabad) ap-south-2"
+
+msgid "enumeration.AwsRegionEnum.ap-southeast-3"
+msgstr "Asia Pacific (Jakarta) ap-southeast-3"
+
+msgid "enumeration.AwsRegionEnum.ap-southeast-4"
+msgstr "Asia Pacific (Melbourne) ap-southeast-4"
+
+msgid "enumeration.AwsRegionEnum.ap-south-1"
+msgstr "Asia Pacific (Mumbai) ap-south-1"
+
+msgid "enumeration.AwsRegionEnum.ap-northeast-3"
+msgstr "Asia Pacific (Osaka) ap-northeast-3"
+
+msgid "enumeration.AwsRegionEnum.ap-northeast-2"
+msgstr "Asia Pacific (Seoul) ap-northeast-2"
+
+msgid "enumeration.AwsRegionEnum.ap-southeast-1"
+msgstr "Asia Pacific (Singapore) ap-southeast-1"
+
+msgid "enumeration.AwsRegionEnum.ap-southeast-2"
+msgstr "Asia Pacific (Sydney) ap-southeast-2"
+
+msgid "enumeration.AwsRegionEnum.ap-northeast-1"
+msgstr "Asia Pacific (Tokyo) ap-northeast-1"
+
+msgid "enumeration.AwsRegionEnum.ca-west-1"
+msgstr "Canada (Calgary) ca-west-1"
+
+msgid "enumeration.AwsRegionEnum.ca-central-1"
+msgstr "Canada (Central) ca-central-1"
+
+msgid "enumeration.AwsRegionEnum.eu-central-1"
+msgstr "Europe (Frankfurt) eu-central-1"
+
+msgid "enumeration.AwsRegionEnum.eu-west-1"
+msgstr "Europe (Ireland) eu-west-1"
+
+msgid "enumeration.AwsRegionEnum.eu-west-2"
+msgstr "Europe (London) eu-west-2"
+
+msgid "enumeration.AwsRegionEnum.eu-south-1"
+msgstr "Europe (Milan) eu-south-1"
+
+msgid "enumeration.AwsRegionEnum.eu-west-3"
+msgstr "Europe (Paris) eu-west-3"
+
+msgid "enumeration.AwsRegionEnum.eu-south-2"
+msgstr "Europe (Spain) eu-south-2"
+
+msgid "enumeration.AwsRegionEnum.eu-north-1"
+msgstr "Europe (Stockholm) eu-north-1"
+
+msgid "enumeration.AwsRegionEnum.eu-central-2"
+msgstr "Europe (Zurich) eu-central-2"
+
+msgid "enumeration.AwsRegionEnum.il-central-1"
+msgstr "Israel (Tel Aviv) il-central-1"
+
+msgid "enumeration.AwsRegionEnum.me-south-1"
+msgstr "Middle East (Bahrain) me-south-1"
+
+msgid "enumeration.AwsRegionEnum.me-central-1"
+msgstr "Middle East (UAE) me-central-1"
+
+msgid "enumeration.AwsRegionEnum.sa-east-1"
+msgstr "South America (Sao Paulo) sa-east-1"
+
+msgid "enumeration.AwsRegionEnum.us-east-1"
+msgstr "US East (N. Virginia) us-east-1"
+
+msgid "enumeration.AwsRegionEnum.us-east-2"
+msgstr "US East (Ohio) us-east-2"
+
+msgid "enumeration.AwsRegionEnum.us-west-1"
+msgstr "US West (N. California) us-west-1"
+
+msgid "enumeration.AwsRegionEnum.us-west-2"
+msgstr "US West (Oregon) us-west-2"
+
+# Error messages
+msgid "error.identifier.none"
+msgstr "No identifier of type %1$s found for Person"
