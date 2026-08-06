@@ -516,16 +516,16 @@ class DynamoProvisionersTable extends Table {
   /**
    * Provision object data to the provisioning target.
    *
-   * @since  COmanage Registry v5.0.0
-   * @param  object $provisioningTarget DynamoProvisioner configuration
-   * @param  string $entityName         Entity name (e.g., 'People')
-   * @param  object $data               Provisioning data in Entity format
-   * @param  string $eligibility        Provisioning Eligibility Enum
-   * @return array                      Array of status, comment, and optional identifier
+   * @since  COmanage Registry v5.2.0
+   * @param  \App\Model\Entity\ProvisioningTarget $provisioningTarget Provisioning Target configuration
+   * @param  string                               $className         Entity class name (e.g., 'People')
+   * @param  object                               $data              Provisioning data in Entity format
+   * @param  string                               $eligibility       Provisioning Eligibility Enum
+   * @return array                                                   Array of status, comment, and optional identifier
    */
   public function provision(
-    object $provisioningTarget,
-    string $entityName,
+    \App\Model\Entity\ProvisioningTarget $provisioningTarget,
+    string $className,
     object $data,
     string $eligibility
   ): array
@@ -534,10 +534,20 @@ class DynamoProvisionersTable extends Table {
     $logPrefix = "DynamoProvisioner provision Person ID $personId ";
     
     // Only provision People
-    if ($entityName != 'People') {
+    if ($className != 'People') {
       return [
         'status' => ProvisioningStatusEnum::NotProvisioned,
         'comment' => 'Only People are provisioned',
+        'identifier' => null
+      ];
+    }
+
+    // Plugin configuration is available as a related entity on the Provisioning Target
+    $cfg = $provisioningTarget->dynamo_provisioner;
+    if (empty($cfg)) {
+      return [
+        'status' => ProvisioningStatusEnum::Unknown,
+        'comment' => 'DynamoProvisioner configuration not found',
         'identifier' => null
       ];
     }
@@ -546,7 +556,7 @@ class DynamoProvisionersTable extends Table {
     $deletePerson = ($eligibility == ProvisioningEligibilityEnum::Deleted);
     
     try {
-      $success = $this->syncPerson($provisioningTarget, $data, $deletePerson);
+      $success = $this->syncPerson($cfg, $data, $deletePerson);
       
       if ($success) {
         return [
@@ -606,14 +616,14 @@ class DynamoProvisionersTable extends Table {
   /**
    * Determine the provisioning status of this target.
    *
-   * @since  COmanage Registry v5.0.0
-   * @param  int  $provisioningTargetId Provisioning Target ID
-   * @param  int  $groupId              Group ID (not currently supported)
-   * @param  int  $personId             Person ID
-   * @return array                      Status information
+   * @since  COmanage Registry v5.2.0
+   * @param  \App\Model\Entity\ProvisioningTarget $cfg      Provisioning Target configuration
+   * @param  int|null                             $groupId  Group ID (not currently supported)
+   * @param  int|null                             $personId Person ID
+   * @return array                                          Status information
    */
   public function status(
-    int $provisioningTargetId,
+    \App\Model\Entity\ProvisioningTarget $cfg,
     ?int $groupId = null,
     ?int $personId = null
   ): array
@@ -628,20 +638,17 @@ class DynamoProvisionersTable extends Table {
     if (empty($personId)) {
       return $ret;
     }
-    
-    // Pull the configuration
-    $provisioningTarget = $this->find()
-      ->where(['DynamoProvisioners.provisioning_target_id' => $provisioningTargetId])
-      ->first();
-      
-    if (!$provisioningTarget) {
+
+    // Plugin configuration is available as a related entity on the Provisioning Target
+    $dynamoProvisioner = $cfg->dynamo_provisioner;
+    if (empty($dynamoProvisioner)) {
       return $ret;
     }
     
     // See if we have recorded any item keys for this Person
     $itemKeys = $this->DynamoProvisionerKeys->getSavedKeysByPersonId(
       $personId,
-      $provisioningTarget->id
+      $dynamoProvisioner->id
     );
     
     if (empty($itemKeys)) {
@@ -656,7 +663,7 @@ class DynamoProvisionersTable extends Table {
       
     $historyRecord = $ProvisioningHistoryRecordsTable->find()
       ->where([
-        'provisioning_target_id' => $provisioningTargetId,
+        'provisioning_target_id' => $cfg->id,
         'person_id' => $personId
       ])
       ->order(['id' => 'DESC'])

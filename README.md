@@ -7,6 +7,9 @@ an Amazon Web Services (AWS) DynamoDB NoSQL database table.
 
 This is the COmanage Registry PE (CakePHP 4) version of the DynamoProvisioner plugin.
 
+- `v1.0.0`: compatible with Registry PE **5.1.0**
+- `v2.0.0`: compatible with Registry PE **5.2.0+**
+
 ## Understanding DynamoDB
 
 Before instantiating and configuring a provisioner you should have a solid
@@ -125,12 +128,14 @@ partition key value
 identifier#EPPN#user@example.edu
 ```
 
-## Installation
+## Installation (Registry PE 5.2.0+)
 
-1. Place the plugin in `app/availableplugins/DynamoProvisioner`
+1. Place the plugin in `local/plugins/DynamoProvisioner`
 2. Run `composer install` in the plugin directory to install AWS SDK dependencies
 3. Activate the plugin via the COmanage CO Configuration > Plugins interface
-4. Create a Provisioning Target and select "DynamoProvisioner" as the plugin
+   (Registry discovers local plugins and updates PSR-4 autoload paths at runtime;
+   do not add the plugin to `app/composer.json`)
+4. Create a Provisioning Target and select "DynamoProvisioner.DynamoProvisioners" as the plugin
 
 ## License
 

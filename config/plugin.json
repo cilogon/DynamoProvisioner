@@ -1,0 +1,128 @@
+{
+  "types": {
+    "provisioning_target": [
+      "DynamoProvisioners"
+    ]
+  },
+  "schema": {
+    "tables": {
+      "dynamo_provisioners": {
+        "columns": {
+          "id": {},
+          "provisioning_target_id": {},
+          "aws_region": {
+            "type": "string",
+            "size": 64
+          },
+          "aws_access_key": {
+            "type": "string",
+            "size": 64
+          },
+          "aws_secret_key": {
+            "type": "string",
+            "size": 64
+          },
+          "table_name": {
+            "type": "string",
+            "size": 256
+          },
+          "partition_key": {
+            "type": "string",
+            "size": 256
+          },
+          "partition_key_template": {
+            "type": "string",
+            "size": 256
+          },
+          "sort_key": {
+            "type": "string",
+            "size": 256
+          },
+          "sort_key_template": {
+            "type": "string",
+            "size": 256
+          },
+          "duplicate_item": {
+            "type": "boolean"
+          }
+        },
+        "indexes": {
+          "dynamo_provisioners_i1": {
+            "columns": [
+              "provisioning_target_id"
+            ]
+          }
+        }
+      },
+      "dynamo_provisioner_keys": {
+        "columns": {
+          "id": {},
+          "dynamo_provisioner_id": {
+            "type": "integer",
+            "foreignkey": {
+              "table": "dynamo_provisioners",
+              "column": "id"
+            },
+            "notnull": true
+          },
+          "person_id": {
+            "type": "integer",
+            "foreignkey": {
+              "table": "people",
+              "column": "id"
+            },
+            "notnull": false
+          },
+          "partition_key": {
+            "type": "string",
+            "size": 256
+          },
+          "sort_key": {
+            "type": "string",
+            "size": 256
+          }
+        },
+        "indexes": {
+          "dynamo_provisioner_keys_i1": {
+            "columns": [
+              "dynamo_provisioner_id",
+              "person_id"
+            ]
+          }
+        }
+      },
+      "dynamo_provisioner_attr_maps": {
+        "columns": {
+          "id": {},
+          "dynamo_provisioner_id": {
+            "type": "integer",
+            "foreignkey": {
+              "table": "dynamo_provisioners",
+              "column": "id"
+            },
+            "notnull": true
+          },
+          "attribute": {
+            "type": "string",
+            "size": 256
+          },
+          "attribute_template": {
+            "type": "string",
+            "size": 256
+          },
+          "attribute_constraint": {
+            "type": "string",
+            "size": 256
+          }
+        },
+        "indexes": {
+          "dynamo_provisioner_attr_maps_i1": {
+            "columns": [
+              "dynamo_provisioner_id"
+            ]
+          }
+        }
+      }
+    }
+  }
+}
