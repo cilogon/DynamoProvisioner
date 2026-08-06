@@ -3,8 +3,7 @@
     "description": "DynamoProvisioner plugin for COmanage Registry",
     "type": "cakephp-plugin",
     "require": {
-        "php": ">=8.1",
-        "cakephp/cakephp": "^4.4",
+        "php": ">=8.2",
         "aws/aws-sdk-php": "^3.303"
     },
     "autoload": {
@@ -14,8 +13,7 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "DynamoProvisioner\\Test\\": "tests/",
-            "Cake\\Test\\": "vendor/cakephp/cakephp/tests/"
+            "DynamoProvisioner\\Test\\": "tests/"
         }
     },
     "config": {

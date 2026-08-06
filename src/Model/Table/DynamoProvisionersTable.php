@@ -666,7 +666,7 @@ class DynamoProvisionersTable extends Table {
         'provisioning_target_id' => $cfg->id,
         'person_id' => $personId
       ])
-      ->order(['id' => 'DESC'])
+      ->orderBy(['id' => 'DESC'])
       ->first();
     
     if (!empty($historyRecord)) {
@@ -728,18 +728,13 @@ class DynamoProvisionersTable extends Table {
     $status = $person->status ?? null;
     
     // If there are no saved keys then this Person has never been provisioned
-    // and if the record has any of these status values then do not provision
+    // and if the record has any of these status values then do not provision.
+    // Status set aligned to Registry PE StatusEnum (v5.2+).
     $noInitialProvisionStatus = [
-      StatusEnum::Confirmed,
       StatusEnum::Archived,
-      StatusEnum::Denied,
       StatusEnum::Duplicate,
-      StatusEnum::Invited,
       StatusEnum::Pending,
       StatusEnum::PendingActivation,
-      StatusEnum::PendingApproval,
-      StatusEnum::PendingConfirmation,
-      StatusEnum::Declined
     ];
     
     if (in_array($status, $noInitialProvisionStatus)) {

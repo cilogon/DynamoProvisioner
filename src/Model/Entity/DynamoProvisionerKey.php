@@ -32,12 +32,14 @@ namespace DynamoProvisioner\Model\Entity;
 use Cake\ORM\Entity;
 
 class DynamoProvisionerKey extends Entity {
+  use \App\Lib\Traits\EntityMetaTrait;
+
   /**
    * Fields that can be mass assigned using newEntity() or patchEntity().
    *
    * @var array<string, bool>
    */
-  protected $_accessible = [
+  protected array $_accessible = [
     '*' => true,
     'id' => false,
   ];

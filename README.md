@@ -132,6 +132,8 @@ identifier#EPPN#user@example.edu
 
 1. Place the plugin in `local/plugins/DynamoProvisioner`
 2. Run `composer install` in the plugin directory to install AWS SDK dependencies
+   (do **not** add `cakephp/cakephp` to this plugin's `composer.json` — Registry
+   already provides CakePHP, and a second copy in the plugin `vendor/` will conflict)
 3. Activate the plugin via the COmanage CO Configuration > Plugins interface
    (Registry discovers local plugins and updates PSR-4 autoload paths at runtime;
    do not add the plugin to `app/composer.json`)

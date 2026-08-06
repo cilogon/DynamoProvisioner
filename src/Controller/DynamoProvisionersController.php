@@ -30,10 +30,10 @@ declare(strict_types=1);
 namespace DynamoProvisioner\Controller;
 
 use App\Controller\StandardPluginController;
-use DynamoProvisioner\Lib\Enum\AwsRegionEnum;
+use Cake\Event\EventInterface;
 
 class DynamoProvisionersController extends StandardPluginController {
-  public $paginate = [
+  protected array $paginate = [
     'order' => [
       'DynamoProvisioners.id' => 'asc'
     ]
@@ -51,7 +51,7 @@ class DynamoProvisionersController extends StandardPluginController {
     $table = $this->DynamoProvisioners;
     
     // Get current data from database
-    $curdata = $table->get($id, ['contain' => ['DynamoProvisionerAttrMaps']]);
+    $curdata = $table->get($id, contain: ['DynamoProvisionerAttrMaps']);
     
     if ($this->request->is(['post', 'put'])) {
       $data = $this->request->getData();
@@ -104,14 +104,27 @@ class DynamoProvisionersController extends StandardPluginController {
    * Callback before views are rendered.
    *
    * @since  COmanage Registry v5.0.0
-   * @param  \Cake\Event\EventInterface $event Event
+   * @param  EventInterface $event Event
    * @return \Cake\Http\Response|null|void
    */
-  public function beforeRender(\Cake\Event\EventInterface $event)
+  public function beforeRender(EventInterface $event)
   {
-    parent::beforeRender($event);
-    
-    // Make AWS regions available to the view with descriptive names
-    $this->set('vv_aws_regions', AwsRegionEnum::getDescriptiveRegions());
+    // Ensure parent Provisioning Target is available for subnavigation/supertitle
+    $link = $this->getPrimaryLink(true);
+    $provisioningTargetId = $link->value ?? null;
+
+    if(empty($provisioningTargetId)) {
+      $obj = $this->viewBuilder()->getVar('vv_obj');
+      $provisioningTargetId = $obj->provisioning_target_id ?? null;
+    }
+
+    if(!empty($provisioningTargetId)) {
+      $Targets = $this->DynamoProvisioners->ProvisioningTargets;
+      $this->set('vv_bc_parent_obj', $Targets->get($provisioningTargetId));
+      $this->set('vv_bc_parent_displayfield', $Targets->getDisplayField());
+      $this->set('vv_bc_parent_primarykey', $Targets->getPrimaryKey());
+    }
+
+    return parent::beforeRender($event);
   }
 }
